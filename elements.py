@@ -21,6 +21,10 @@ class Node:
     signals: List['Signal'] = field(default_factory=list, init=False)
     parent: Self = field(init=False)
 
+    @property
+    def is_multinuclear(self) -> bool:
+        return self.relname in ['list', 'same-unit']
+
 
 @dataclass
 class Segment(Node):

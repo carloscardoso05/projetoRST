@@ -1,8 +1,9 @@
 import os
-from typing import List
+
+from typing import List, Dict
 from xml.etree import ElementTree
 
-from elements import Relation, Group, Segment, Signal
+from elements import Relation, Group, Segment, Signal, Node
 
 
 class RS3Reader:
@@ -16,23 +17,36 @@ class RS3Reader:
         self.groups = self.get_groups()
         self.segments = self.get_segments()
         self.signals = self.get_signals()
+        self._link_nodes()
+
+    def _link_nodes(self):
+        for node in self.nodes.values():
+            node.parent = self.nodes.get(node.parent_id)
+        for signal in self.signals.values():
+            signal.source = self.nodes.get(signal.source_id)
+            signal.source.signals.append(signal)
+
+    @property
+    def nodes(self) -> Dict[int, Node]:
+        nodes = self.segments | self.groups
+        return nodes
 
     def get_relations(self) -> List[Relation]:
         relations_elements = self.root.findall('header/relations/rel')
-        relations = [Relation.from_element(element) for element in relations_elements]
+        relations = list(map(Relation.from_element, relations_elements))
         return relations
 
-    def get_groups(self) -> List[Group]:
-        group_elements = self.root.findall('body/group')
-        groups = [Group.from_element(element) for element in group_elements]
+    def get_groups(self) -> Dict[int, Group]:
+        groups_elements = self.root.findall('body/group')
+        groups = {group.id: group for group in map(Group.from_element, groups_elements)}
         return groups
 
-    def get_segments(self) -> List[Segment]:
+    def get_segments(self) -> Dict[int, Segment]:
         segments_elements = self.root.findall('body/segment')
-        segments = [Segment.from_element(element) for element in segments_elements]
+        segments = {segment.id: segment for segment in map(Segment.from_element, segments_elements)}
         return segments
 
-    def get_signals(self) -> List[Signal]:
+    def get_signals(self) -> Dict[int, Signal]:
         signals_elements = self.root.findall('body/signals/signal')
-        signals = [Signal.from_element(element) for element in signals_elements]
+        signals = {i: Signal.from_element(signals_elements[i], i) for i in range(len(signals_elements))}
         return signals

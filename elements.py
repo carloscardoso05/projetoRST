@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, KW_ONLY, field
 from typing import List, Self
 from xml.etree.ElementTree import Element
 
@@ -18,6 +18,8 @@ class Node:
     id: int
     parent_id: int
     relname: str
+    signals: List['Signal'] = field(default_factory=list, init=False)
+    parent: Self = field(init=False)
 
 
 @dataclass
@@ -37,12 +39,14 @@ class Segment(Node):
 @dataclass
 class Group(Node):
     type: str
+    parent_id: int | None
 
     @classmethod
     def from_element(cls, element: Element) -> Self:
+        parent = element.get('parent')
         return cls(
             id=int(element.get('id')),
-            parent_id=int(element.get('parent')),
+            parent_id=int(parent) if parent else None,
             relname=element.get('relname'),
             type=element.get('type')
         )
@@ -50,14 +54,17 @@ class Group(Node):
 
 @dataclass
 class Signal:
+    id: int
     source_id: int
     tokens_ids: List[int]
     type: str
     subtype: str
+    source: Node = None
 
     @classmethod
-    def from_element(cls, element: Element) -> Self:
+    def from_element(cls, element: Element, signal_id: int) -> Self:
         return cls(
+            id=signal_id,
             source_id=int(element.get('source')),
             tokens_ids=list(map(int, element.get('tokens').split(','))),
             type=element.get('type'),

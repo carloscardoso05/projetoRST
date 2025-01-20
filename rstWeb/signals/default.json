@@ -1,0 +1,28 @@
+{"MD": [
+			"PREP",
+			"CONJ",
+			"ADV"],
+ "MORF": [
+			"TEMPO-VERBAL",
+			"SENT-VERBAL"],
+ "SINT": [
+			"ORA-CIRCUNS",
+			"ORA-REL",
+			"PRO-REL",
+			"NUM",
+			"VALE-VERB"],
+ "SEMA": [
+			"HIPER-HIPO",
+			"SINO",
+			"ANTO",
+			"CAMPO-SEM",
+			"CONHE-MUND",
+			"FONTE",
+			"VERB-COMUNI",
+			"ACRO"],
+ "GRAF": [
+			"TRAVES",
+			"PARENT",
+			"PONT",
+			"ASPAS"],
+ "CDP": ["CDP"]}

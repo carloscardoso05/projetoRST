@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
     nodes = [node.relname for node in reader.nodes.values() if
              (isinstance(node, Segment) and not node.is_multinuclear)
-             or (node.signals and node.relname in ["same-unit"])]
+             or (node.signals and node.is_multinuclear)]
 
     counting = Counter(nodes)
 

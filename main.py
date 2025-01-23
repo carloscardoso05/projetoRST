@@ -1,37 +1,35 @@
+import re
+
 import numpy as np
 
-from RS3Reader import RS3Reader
+from RS3Reader import RS3Reader, are_of_same_sentence
 from collections import Counter
 import pandas as pd
 
-from elements import Segment
+from typing import cast
+
+from elements import Segment, Node
 
 if __name__ == '__main__':
-    file_path = r'documents/D1_C35_Folha_07-08-2007_14h11Paula.rs3'
+    file_path = r'documents/D1_C25_Folha_16-07-2007_07h50Paula.rs3'
     reader = RS3Reader(file_path)
 
-    nodes = [node.relname for node in reader.nodes.values() if
-             (isinstance(node, Segment) and not node.is_multinuclear)
-             or (node.signals and node.is_multinuclear)]
 
-    counting = Counter(nodes)
+    def to_count(node: Node) -> bool:
+        if node.is_multinuclear:
+            return len(node.signals) > 0
+        return are_of_same_sentence(node.parent) and (isinstance(node, Segment) or node.signals)
 
-    df_count = pd.DataFrame.from_dict(counting, orient='index', columns=['count'])
 
-    expected = {
-        'circumstance': 4,
-        'same-unit': 4,
-        'parenthetical': 4,
-        'elaboration': 5,
-        'attribution': 6,
-        'volitional-cause': 5,
-        'concession': 2,
-        'list': 2,
-        'purpose': 1,
-        'evidence': 1,
-    }
+    nodes = [node for node in reader.nodes.values() if to_count(node)]
 
-    df_expected = pd.DataFrame.from_dict(expected, orient='index', columns=['expected'])
-    df = pd.concat([df_expected, df_count], axis=1)
+    for node in nodes:
+        if node.relname == 'elaboration':
+            # print('id:', node.id, '| parent_id:', node.parent_id)
+            print(node)
+
+    counting = Counter(map(lambda node: node.relname, nodes))
+
+    df = pd.DataFrame.from_dict(counting, orient='index', columns=['count'])
     df.replace(np.nan, 0, inplace=True)
     print(df)

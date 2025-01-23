@@ -1,9 +1,21 @@
+import itertools
 import os
+import re
 
-from typing import List, Dict
+from typing import List, Dict, Tuple, cast
 from xml.etree import ElementTree
 
 from elements import Relation, Group, Segment, Signal, Node
+
+
+def are_of_same_sentence(*nodes: Node) -> bool:
+    segments: List[Segment] = list(itertools.chain.from_iterable([node.get_all_segments() for node in nodes if node is not None]))
+    if len(segments) < 2: return True
+    sentence_id = segments[0].sentence_id
+    for segment in segments[1:]:
+        if segment.sentence_id != sentence_id:
+            return False
+    return True
 
 
 class RS3Reader:
@@ -18,13 +30,32 @@ class RS3Reader:
         self.segments = self.get_segments()
         self.signals = self.get_signals()
         self._link_nodes()
+        self.assing_sentences()
 
     def _link_nodes(self):
         for node in self.nodes.values():
             node.parent = self.nodes.get(node.parent_id)
+            if node.parent is not None:
+                node.parent.children.append(node)
         for signal in self.signals.values():
             signal.source = self.nodes.get(signal.source_id)
             signal.source.signals.append(signal)
+
+    def assing_sentences(self) -> None:
+        sentence_id = 1
+        initial_token_id = 1
+        for segment in sorted(self.segments.values(), key=lambda s: cast(Segment, s).id):
+            segment.sentence_id = sentence_id
+            segment.initial_token_id = initial_token_id
+            if re.match(r'\.\s*[\'\"]?\s*', segment.tokens[-1]):
+                sentence_id += 1
+            initial_token_id += len(segment.tokens)
+
+    def get_left_segment(self, segment: Segment) -> Segment | None:
+        return self.segments.get(segment.id - 1)
+
+    def get_right_segment(self, segment: Segment) -> Segment | None:
+        return self.segments.get(segment.id + 1)
 
     @property
     def nodes(self) -> Dict[int, Node]:

@@ -1,5 +1,6 @@
+import itertools
 from dataclasses import dataclass, KW_ONLY, field
-from typing import List, Self
+from typing import List, Self, Dict
 from xml.etree.ElementTree import Element
 
 
@@ -20,15 +21,37 @@ class Node:
     relname: str
     signals: List['Signal'] = field(default_factory=list, init=False)
     parent: Self = field(init=False)
+    children: List[Self] = field(default_factory=list, init=False)
 
     @property
     def is_multinuclear(self) -> bool:
         return self.relname in ['list', 'same-unit']
 
+    @property
+    def siblings(self) -> List[Self]:
+        return self.parent.children if self.parent else []
+
+    def get_all_segments(self) -> List['Segment']:
+        if isinstance(self, Segment):
+            return [self] # TODO não é um caso base
+        return list(itertools.chain.from_iterable(child.get_all_segments() for child in self.children))
+
+    # TODO
+    def get_text(self) -> str:
+        text = ''
+        for segment in self.get_all_segments():
+            text += segment.get_text()
+        return text
+
 
 @dataclass
 class Segment(Node):
     tokens: List[str]
+    initial_token_id: int = field(init=False)
+    sentence_id: int = field(init=False)
+
+    def get_tokens_ids(self) -> List[int]:
+        return list(range(self.initial_token_id, self.initial_token_id + len(self.tokens)))
 
     @classmethod
     def from_element(cls, element: Element) -> Self:

@@ -1,15 +1,22 @@
 import itertools
 import os
 import re
-
-from typing import List, Dict, Tuple, cast
+from collections import Counter
+from typing import List, Dict, cast
 from xml.etree import ElementTree
 
 from elements import Relation, Group, Segment, Signal, Node
 
 
+def to_count(node: Node) -> bool:
+    if node.is_multinuclear:
+        return len(node.signals) > 0
+    return are_of_same_sentence(node.parent) and (isinstance(node, Segment) or len(node.signals) > 0)
+
+
 def are_of_same_sentence(*nodes: Node) -> bool:
-    segments: List[Segment] = list(itertools.chain.from_iterable([node.get_all_segments() for node in nodes if node is not None]))
+    segments: List[Segment] = list(
+        itertools.chain.from_iterable([node.get_all_segments() for node in nodes if node is not None]))
     if len(segments) < 2: return True
     sentence_id = segments[0].sentence_id
     for segment in segments[1:]:
@@ -81,3 +88,11 @@ class RS3Reader:
         signals_elements = self.root.findall('body/signals/signal')
         signals = {i: Signal.from_element(signals_elements[i], i) for i in range(len(signals_elements))}
         return signals
+
+    def count_relations(self) -> Dict[str, int]:
+
+        nodes = filter(to_count, self.nodes.values())
+
+        counting = dict(Counter(map(lambda node: node.relname, nodes)))
+
+        return counting

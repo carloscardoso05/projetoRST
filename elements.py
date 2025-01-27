@@ -1,6 +1,6 @@
 import itertools
-from dataclasses import dataclass, KW_ONLY, field
-from typing import List, Self, Dict
+from dataclasses import dataclass, field
+from typing import List, Self
 from xml.etree.ElementTree import Element
 
 
@@ -20,12 +20,12 @@ class Node:
     parent_id: int
     relname: str
     signals: List['Signal'] = field(default_factory=list, init=False)
-    parent: Self = field(init=False)
-    children: List[Self] = field(default_factory=list, init=False)
+    parent: 'Node' = field(init=False)
+    children: List['Node'] = field(default_factory=list, init=False)
 
     @property
     def is_multinuclear(self) -> bool:
-        return self.relname in ['list', 'same-unit']
+        return self.relname in ['list', 'same-unit', 'sequence']
 
     @property
     def siblings(self) -> List[Self]:

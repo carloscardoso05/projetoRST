@@ -22,10 +22,15 @@ class Node:
     signals: List['Signal'] = field(default_factory=list, init=False)
     parent: 'Node' = field(init=False)
     children: List['Node'] = field(default_factory=list, init=False)
+    relation: Relation = field(init=False)
+
+    @property
+    def signals_without_cdp(self) -> List['Signal']:
+        return [signal for signal in self.signals if signal.type != 'CDP']
 
     @property
     def is_multinuclear(self) -> bool:
-        return self.relname in ['list', 'same-unit', 'sequence']
+        return self.relation and self.relation.type == 'multinuc'
 
     @property
     def siblings(self) -> List[Self]:

@@ -2,7 +2,6 @@ import os
 import unittest
 from typing import Dict
 
-import numpy as np
 import pandas as pd
 
 from RS3Reader import RS3Reader
@@ -23,16 +22,16 @@ class TestCounting(unittest.TestCase):
             'purpose': 1,
             'evidence': 0,
         },
-        # 'D1_C25_Folha_16-07-2007_07h50Paula.rs3': {
-        #     'circumstance': 3,
-        #     'same-unit': 4,
-        #     'parenthetical': 3,
-        #     'elaboration': 10,
-        #     'non-volitional-cause': 1,
-        #     'purpose': 1,
-        #     'sequence': 5,
-        #     'list': 3,
-        # },
+        'D1_C25_Folha_16-07-2007_07h50Paula.rs3': {
+            'circumstance': 3,
+            'same-unit': 4,
+            'parenthetical': 3,
+            'elaboration': 10,
+            'non-volitional-cause': 1,
+            'purpose': 1,
+            'sequence': 4,
+            'list': 3,
+        },
     }
 
     def test_counting(self):

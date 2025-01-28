@@ -10,7 +10,7 @@ from elements import Relation, Group, Segment, Signal, Node
 
 def to_count(node: Node) -> bool:
     if node.is_multinuclear:
-        return len(node.signals) > 0
+        return len(node.signals_without_cdp) > 0
     return isinstance(node, Segment) or (len(node.signals) > 0 and are_of_same_sentence(node.parent))
 
 
@@ -44,6 +44,7 @@ class RS3Reader:
             node.parent = self.nodes.get(node.parent_id)
             if node.parent is not None:
                 node.parent.children.append(node)
+            node.relation = self.relations.get(node.relname)
         for signal in self.signals.values():
             signal.source = self.nodes.get(signal.source_id)
             signal.source.signals.append(signal)
@@ -69,10 +70,10 @@ class RS3Reader:
         nodes = self.segments | self.groups
         return nodes
 
-    def get_relations(self) -> List[Relation]:
+    def get_relations(self) -> Dict[str, Relation]:
         relations_elements = self.root.findall('header/relations/rel')
-        relations = list(map(Relation.from_element, relations_elements))
-        return relations
+        relations = map(Relation.from_element, relations_elements)
+        return {rel.name: rel for rel in relations}
 
     def get_groups(self) -> Dict[int, Group]:
         groups_elements = self.root.findall('body/group')

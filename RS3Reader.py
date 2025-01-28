@@ -11,16 +11,16 @@ from elements import Relation, Group, Segment, Signal, Node
 def to_count(node: Node) -> bool:
     if node.is_multinuclear:
         return len(node.signals) > 0
-    return are_of_same_sentence(node.parent) and (isinstance(node, Segment) or len(node.signals) > 0)
+    return isinstance(node, Segment) or (len(node.signals) > 0 and are_of_same_sentence(node.parent))
 
 
 def are_of_same_sentence(*nodes: Node) -> bool:
-    segments: List[Segment] = list(
-        itertools.chain.from_iterable([node.get_all_segments() for node in nodes if node is not None]))
-    if len(segments) < 2: return True
+    segments: List[Segment] = list(itertools.chain.from_iterable(
+        [node.get_all_segments() for node in nodes if node is not None]))
+    if len(segments) <= 1: return True
     sentence_id = segments[0].sentence_id
     for segment in segments[1:]:
-        if segment.sentence_id != sentence_id:
+        if sentence_id != segment.sentence_id:
             return False
     return True
 

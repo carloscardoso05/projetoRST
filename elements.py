@@ -32,9 +32,11 @@ class Node:
         return self.parent.children if self.parent else []
 
     def get_all_segments(self) -> List['Segment']:
+        segments = []
         if isinstance(self, Segment):
-            return [self] # TODO não é um caso base
-        return list(itertools.chain.from_iterable(child.get_all_segments() for child in self.children))
+            segments.append(self)
+        segments.extend(itertools.chain.from_iterable(child.get_all_segments() for child in self.children))
+        return segments
 
     # TODO
     def get_text(self) -> str:
@@ -47,11 +49,15 @@ class Node:
 @dataclass
 class Segment(Node):
     tokens: List[str]
-    initial_token_id: int = field(init=False)
+    initial_token_id: int = field(init=False, default=None)
     sentence_id: int = field(init=False)
 
     def get_tokens_ids(self) -> List[int]:
         return list(range(self.initial_token_id, self.initial_token_id + len(self.tokens)))
+
+    @property
+    def text(self) -> str:
+        return ' '.join(self.tokens)
 
     @classmethod
     def from_element(cls, element: Element) -> Self:

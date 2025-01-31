@@ -11,8 +11,16 @@ def to_count(node: Node) -> bool:
     # Quando a relname de um nó é None, significa que é a raiz da árvore
     if node.relname == 'span' or node.relname is None: return False
     if node.is_multinuclear:
-        return len(node.signals_without_cdp) > 0
-        # return node in node.siblings[::2]
+        # agrupar nós por
+        # return node in sorted(node.siblings[::2], key=lambda s: cast(Node, s).id) and isinstance(node, Segment)
+        index = node.siblings.index(node)
+        if index + 1 == len(node.siblings):
+            return False
+        node_on_right = node.siblings[index + 1]
+        if node.sentences != node_on_right.sentences and node.relname == 'same-unit':
+            print(node)
+            print(node.get_text())
+        return node.sentences == node_on_right.sentences
     return are_of_same_sentence(node.parent, node)
 
 

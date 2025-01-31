@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Self
+from typing import List, Self, cast
 from xml.etree.ElementTree import Element
 
 
@@ -33,7 +33,16 @@ class Node:
 
     @property
     def siblings(self) -> List[Self]:
-        return self.parent.children if self.parent else []
+        siblings: List[Node] = self.parent.children if self.parent else []
+        return sorted(siblings, key=lambda n: cast(Node, n).id)
+
+    @property
+    def sentences(self) -> List[int]:
+        sentences: List[int] = []
+        for segment in self.get_all_segments():
+            sentences.append(segment.sentence_id)
+        return sentences
+
 
     def get_all_segments(self) -> List['Segment']:
         segments = []
@@ -47,7 +56,7 @@ class Node:
     def get_text(self) -> str:
         text = ''
         for segment in self.get_all_segments():
-            text += segment.get_text()
+            text += segment.text
         return text
 
 

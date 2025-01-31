@@ -60,5 +60,8 @@ if __name__ == '__main__':
             'list': 3,
         },
     }
+    for file in os.listdir(base_dir):
+        if file not in documents_counting:
+            documents_counting[file] = {}
 
     test_counting()

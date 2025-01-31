@@ -9,9 +9,10 @@ from elements import Relation, Group, Segment, Signal, Node
 
 
 def to_count(node: Node) -> bool:
+    if node.relname == 'span': return False
     if node.is_multinuclear:
         return len(node.signals_without_cdp) > 0
-    return isinstance(node, Segment) or (len(node.signals) > 0 and are_of_same_sentence(node.parent))
+    return (len(node.signals) > 0 or isinstance(node, Segment)) and are_of_same_sentence(node.parent)
 
 
 def are_of_same_sentence(*nodes: Node) -> bool:

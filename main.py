@@ -1,13 +1,40 @@
 import os
-import unittest
 from typing import Dict
 
-import pandas as pd
+from prettytable import PrettyTable
 
 from RS3Reader import RS3Reader
 
 
-class TestCounting(unittest.TestCase):
+def get_result(esperado, encontrado) -> str:
+    if encontrado == esperado:
+        return 'Ok'
+    diff = int(esperado - encontrado)
+    return 'Esperava %s ocorrências' % (f'+{diff}' if diff > 0 else diff)
+
+
+def test_counting():
+    for document, expected_counting in documents_counting.items():
+        table = PrettyTable(["Relação", "Esperado", "Encontrado", "Resultado"])
+        path = os.path.join(base_dir, document)
+        reader = RS3Reader(path)
+        print(f'\nTeste para {document}')
+        counting = reader.count_relations()
+        # df = pd.DataFrame.from_dict(counting, orient='index', columns=['encontrado'])
+        # df = df.join(pd.DataFrame.from_dict(expected_counting, orient='index', columns=['esperado']))
+        # df.replace(np.nan, 0, inplace=True)
+        # df['resultado'] = df.apply(get_result, axis=1)
+        # df['esperado'] = df['esperado'].astype(int)
+        # df['encontrado'] = df['encontrado'].astype(int)
+        for key in set(counting.keys()).union(expected_counting.keys()):
+            esperado = expected_counting.get(key, 0)
+            encontrado = counting.get(key, 0)
+            resultado = get_result(esperado, encontrado)
+            table.add_row([key, esperado, encontrado, resultado])
+        print(table)
+
+
+if __name__ == '__main__':
     base_dir = 'documents'
     documents_counting: Dict[str, Dict[str, int]] = {
         'D1_C35_Folha_07-08-2007_14h11Paula.rs3': {
@@ -34,19 +61,4 @@ class TestCounting(unittest.TestCase):
         },
     }
 
-    def test_counting(self):
-        self.maxDiff = None
-        for document, expected_counting in self.documents_counting.items():
-            path = os.path.join(self.base_dir, document)
-            reader = RS3Reader(path)
-            print(f'\nTeste para {document}')
-            counting = reader.count_relations()
-            df = pd.DataFrame.from_dict(counting, orient='index', columns=['count'])
-            df = df.join(pd.DataFrame.from_dict(expected_counting, orient='index', columns=['expected']))
-            df['resultado'] = df.apply(
-                lambda row: '✅' if row['count'] == row['expected'] else '❌', axis=1)
-            print(df)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    test_counting()

@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass, field
 from typing import List, Self
 from xml.etree.ElementTree import Element
@@ -40,7 +39,8 @@ class Node:
         segments = []
         if isinstance(self, Segment):
             segments.append(self)
-        segments.extend(itertools.chain.from_iterable(child.get_all_segments() for child in self.children))
+        for child in self.children:
+            segments.extend(child.get_all_segments())
         return segments
 
     # TODO
@@ -54,6 +54,7 @@ class Node:
 @dataclass
 class Segment(Node):
     tokens: List[str]
+    order: int
     initial_token_id: int = field(init=False, default=None)
     sentence_id: int = field(init=False)
 
@@ -65,9 +66,10 @@ class Segment(Node):
         return ' '.join(self.tokens)
 
     @classmethod
-    def from_element(cls, element: Element) -> Self:
+    def from_element(cls, element: Element, order: int) -> Self:
         return cls(
             id=int(element.get('id')),
+            order=order,
             parent_id=int(element.get('parent')),
             relname=element.get('relname'),
             tokens=element.text.split()

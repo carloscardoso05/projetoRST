@@ -1,4 +1,3 @@
-import itertools
 import os
 import re
 from collections import Counter
@@ -9,15 +8,21 @@ from elements import Relation, Group, Segment, Signal, Node
 
 
 def to_count(node: Node) -> bool:
-    if node.relname == 'span': return False
+    # Quando a relname de um nó é None, significa que é a raiz da árvore
+    if node.relname == 'span' or node.relname is None: return False
     if node.is_multinuclear:
         return len(node.signals_without_cdp) > 0
-    return (len(node.signals) > 0 or isinstance(node, Segment)) and are_of_same_sentence(node.parent)
+        # return node in node.siblings[::2]
+    return are_of_same_sentence(node.parent, node)
 
 
 def are_of_same_sentence(*nodes: Node) -> bool:
-    segments: List[Segment] = list(itertools.chain.from_iterable(
-        [node.get_all_segments() for node in nodes if node is not None]))
+    segments: List[Segment] = []
+    for node in nodes:
+        if isinstance(node, Group):
+            segments.extend(node.get_all_segments())
+        elif isinstance(node, Segment):
+            segments.append(node)
     if len(segments) <= 1: return True
     sentence_id = segments[0].sentence_id
     for segment in segments[1:]:
@@ -53,18 +58,12 @@ class RS3Reader:
     def assing_sentences(self) -> None:
         sentence_id = 1
         initial_token_id = 1
-        for segment in sorted(self.segments.values(), key=lambda s: cast(Segment, s).id):
+        for segment in sorted(self.segments.values(), key=lambda s: cast(Segment, s).order):
             segment.sentence_id = sentence_id
             segment.initial_token_id = initial_token_id
-            if re.match(r'\.\s*[\'\"]?\s*', segment.tokens[-1]):
+            if re.match(r'.*[.? !]\s*[\'\"]?\s*', segment.tokens[-1]):
                 sentence_id += 1
             initial_token_id += len(segment.tokens)
-
-    def get_left_segment(self, segment: Segment) -> Segment | None:
-        return self.segments.get(segment.id - 1)
-
-    def get_right_segment(self, segment: Segment) -> Segment | None:
-        return self.segments.get(segment.id + 1)
 
     @property
     def nodes(self) -> Dict[int, Node]:
@@ -78,12 +77,20 @@ class RS3Reader:
 
     def get_groups(self) -> Dict[int, Group]:
         groups_elements = self.root.findall('body/group')
-        groups = {group.id: group for group in map(Group.from_element, groups_elements)}
+        groups: Dict[int, Group] = {}
+        for group_element in groups_elements:
+            group = Group.from_element(group_element)
+            groups[group.id] = group
         return groups
 
     def get_segments(self) -> Dict[int, Segment]:
         segments_elements = self.root.findall('body/segment')
-        segments = {segment.id: segment for segment in map(Segment.from_element, segments_elements)}
+        segments: Dict[int, Segment] = {}
+        order = 1
+        for segment_element in segments_elements:
+            segment = Segment.from_element(segment_element, order)
+            segments[segment.id] = segment
+            order += 1
         return segments
 
     def get_signals(self) -> Dict[int, Signal]:
@@ -92,9 +99,6 @@ class RS3Reader:
         return signals
 
     def count_relations(self) -> Dict[str, int]:
-
         nodes = filter(to_count, self.nodes.values())
-
         counting = dict(Counter(map(lambda node: node.relname, nodes)))
-
         return counting

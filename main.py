@@ -6,7 +6,11 @@ from prettytable import PrettyTable
 from RS3Reader import RS3Reader
 
 
-def get_result(esperado, encontrado) -> str:
+def get_result(esperado: int | None, encontrado: int) -> str:
+    if esperado is None:
+        return 'Não esperado'
+    if encontrado is None:
+        encontrado = 0
     if encontrado == esperado:
         return 'Ok'
     diff = int(esperado - encontrado)
@@ -27,11 +31,11 @@ def test_counting():
         # df['esperado'] = df['esperado'].astype(int)
         # df['encontrado'] = df['encontrado'].astype(int)
         for key in set(counting.keys()).union(expected_counting.keys()):
-            esperado = expected_counting.get(key, 0)
+            esperado = expected_counting.get(key)
             encontrado = counting.get(key, 0)
             resultado = get_result(esperado, encontrado)
             table.add_row([key, esperado, encontrado, resultado])
-        print(table)
+        print(table.get_string(sortby="Resultado", reversesort=True))
 
 
 if __name__ == '__main__':
@@ -41,7 +45,8 @@ if __name__ == '__main__':
             'circumstance': 4,
             'same-unit': 3,
             'parenthetical': 4,
-            'elaboration': 5,
+            # 'elaboration': 5, TODO rever contagem (só achei 3)
+            'elaboration': 3,
             'attribution': 6,
             'volitional-cause': 5,
             'concession': 2,
@@ -59,9 +64,32 @@ if __name__ == '__main__':
             'sequence': 4,
             'list': 3,
         },
+        'D2_C34_Estadao_20-08-2007_13h22.rs3': {
+            'circumstance': 1,
+            'same-unit': 3,
+            'parenthetical': 5,
+            'elaboration': 6,
+            'non-volitional-result': 2,
+            'sequence': 1,
+            'list': 2,
+            'comparison': 1,
+            'condition': 1,
+            'attribution': 4,
+        },
+        'D1_C44_Folha_19-09-2007_12h03.rs3': {
+            'justify': 1,
+            'same-unit': 4,
+            'parenthetical': 5,
+            'elaboration': 7,
+            'volitional-cause': 1,
+            'sequence': 3,
+            'purpose': 4,
+            'attribution': 6,
+            'concession': 1,
+            'contrast': 1,
+            'explanation': 3,
+            'condition': 3,
+        },
     }
-    for file in os.listdir(base_dir):
-        if file not in documents_counting:
-            documents_counting[file] = {}
 
     test_counting()

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Self, cast
+from typing import List, Self, cast, Set
 from xml.etree.ElementTree import Element
 
 
@@ -29,7 +29,8 @@ class Node:
 
     @property
     def is_multinuclear(self) -> bool:
-        return self.relation and self.relation.type == 'multinuc'
+        # return self.relation and self.relation.type == 'multinuc'
+        return self.relname in ['sequence', 'same-unit', 'list', 'contrast', 'joint', 'other-rel']
 
     @property
     def siblings(self) -> List[Self]:
@@ -37,11 +38,15 @@ class Node:
         return sorted(siblings, key=lambda n: cast(Node, n).id)
 
     @property
-    def sentences(self) -> List[int]:
+    def siblings_of_same_relation(self) -> List[Self]:
+        return [sibling for sibling in self.siblings if sibling.relname == self.relname]
+
+    @property
+    def sentences(self) -> Set[int]:
         sentences: List[int] = []
         for segment in self.get_all_segments():
             sentences.append(segment.sentence_id)
-        return sentences
+        return set(sentences)
 
 
     def get_all_segments(self) -> List['Segment']:
@@ -56,7 +61,7 @@ class Node:
     def get_text(self) -> str:
         text = ''
         for segment in self.get_all_segments():
-            text += segment.text
+            text += ' ' + segment.text
         return text
 
 

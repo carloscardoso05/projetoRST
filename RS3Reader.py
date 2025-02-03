@@ -42,7 +42,8 @@ class RS3Reader:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f'Document at "{file_path}" does not exist')
 
-        self.tree = ElementTree.parse(file_path)
+        parser = ElementTree.XMLParser(encoding='latin')
+        self.tree = ElementTree.parse(file_path, parser=parser)
         self.root = self.tree.getroot()
         self.relations = self.get_relations()
         self.groups = self.get_groups()

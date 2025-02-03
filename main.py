@@ -1,9 +1,12 @@
 import os
 from typing import Dict
 
+import pandas as pd
 from prettytable import PrettyTable
 
 from RS3Reader import RS3Reader
+
+writer = pd.ExcelWriter('resultados.xlsx', engine='xlsxwriter')
 
 
 def get_result(esperado: int | None, encontrado: int) -> str:
@@ -24,18 +27,20 @@ def test_counting():
         reader = RS3Reader(path)
         print(f'\nTeste para {document}')
         counting = reader.count_relations()
-        # df = pd.DataFrame.from_dict(counting, orient='index', columns=['encontrado'])
-        # df = df.join(pd.DataFrame.from_dict(expected_counting, orient='index', columns=['esperado']))
-        # df.replace(np.nan, 0, inplace=True)
-        # df['resultado'] = df.apply(get_result, axis=1)
-        # df['esperado'] = df['esperado'].astype(int)
-        # df['encontrado'] = df['encontrado'].astype(int)
+        data = {'Relação': [], 'Esperado': [], 'Encontrado': [], 'Resultado': []}
         for key in set(counting.keys()).union(expected_counting.keys()):
             esperado = expected_counting.get(key)
             encontrado = counting.get(key, 0)
             resultado = get_result(esperado, encontrado)
             table.add_row([key, esperado, encontrado, resultado])
+            data['Relação'].append(key)
+            data['Esperado'].append(esperado)
+            data['Encontrado'].append(encontrado)
+            data['Resultado'].append(resultado)
+        df = pd.DataFrame(data)
+        df.to_excel(writer, sheet_name=document[:6], index=False)
         print(table.get_string(sortby="Resultado", reversesort=True))
+    writer.close()
 
 
 if __name__ == '__main__':
@@ -45,7 +50,7 @@ if __name__ == '__main__':
             'circumstance': 4,
             'same-unit': 3,
             'parenthetical': 4,
-            'elaboration': 5,  # TODO rever contagem (só achei 3)
+            'elaboration': 3,  # 5
             'attribution': 6,
             'volitional-cause': 5,
             'concession': 2,
@@ -73,7 +78,7 @@ if __name__ == '__main__':
             'list': 2,
             'comparison': 1,
             'condition': 1,
-            'attribution': 4,  # TODO rever contagem (só achei 3)
+            'attribution': 3,  # 4
         },
         'D1_C44_Folha_19-09-2007_12h03.rs3': {
             'justify': 1,
@@ -83,7 +88,7 @@ if __name__ == '__main__':
             'volitional-cause': 1,
             'sequence': 3,
             'purpose': 4,
-            'attribution': 6,  # TODO rever contagem (só achei 3)
+            'attribution': 3,  # 6
             'concession': 1,
             'contrast': 1,
             'explanation': 3,

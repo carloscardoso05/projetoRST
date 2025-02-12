@@ -6,11 +6,17 @@ from rst.forms import UploadRstFileForm
 
 
 def index(request: HttpRequest) -> HttpResponse:
+    context = {}
     if request.method == "POST":
         form = UploadRstFileForm(request.POST, request.FILES)
         file = request.FILES["file"]
         reader = RS3Reader(file.read())
-        print(reader.count_relations())
+        counting = {
+            relation.replace('-', ' ').capitalize(): count
+            for relation, count in reader.count_relations().items()
+        }
+        context["counting"] = counting
     else:
         form = UploadRstFileForm()
-    return render(request, "rst/index.html", {'form': form})
+    context["form"] = form
+    return render(request, "rst/index.html", context)

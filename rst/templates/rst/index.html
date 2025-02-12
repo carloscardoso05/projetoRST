@@ -5,31 +5,55 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="title">Rst</h1>
-    <form action="{% url 'index' %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="field">
-            <div class="file has-name is-fullwidth">
-                <label class="file-label" for="{{ form.file.id_for_label }}">
-                    {{ form.file }}
-                    <span class="file-cta">
+    <div class="p-4">
+
+        <h1 class="title block">Rst</h1>
+        {% if form.files %}
+            <h2 class="subtitle block"> {{ form.files.file }}</h2>
+        {% endif %}
+        {% if counting %}
+            <table class="block table is-striped is-hoverable">
+                <thead>
+                <tr>
+                    <th>Relação</th>
+                    <th>Nº de ocorrências</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for relation, count in counting.items %}
+                    <tr>
+                        <td>{{ relation }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+        <form action="{% url 'index' %}" method="post" enctype="multipart/form-data" class="block">
+            {% csrf_token %}
+            <div class="field">
+                <div class="file has-name">
+                    <label class="file-label" for="{{ form.file.id_for_label }}">
+                        {{ form.file }}
+                        <span class="file-cta">
                         <span class="file-icon">
                             <i class="fas fa-upload"></i>
                         </span>
                         <span class="file-label"> {{ form.file.label }} </span>
                     </span>
-                    <span class="file-name">
+                        <span class="file-name">
                         {% if form.file.value %}
                             {{ form.file.value }}
                         {% else %}
                             Nenhum arquivo selecionado
                         {% endif %}
                     </span>
-                </label>
+                    </label>
+                </div>
             </div>
-        </div>
-        <button class="button is-primary" type="submit">Enviar</button>
-    </form>
+            <button class="button is-primary" type="submit">Enviar</button>
+        </form>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
